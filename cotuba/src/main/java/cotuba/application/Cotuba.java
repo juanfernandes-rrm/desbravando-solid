@@ -2,17 +2,17 @@ package cotuba.application;
 
 import cotuba.domain.Capitulo;
 import cotuba.domain.Ebook;
-import cotuba.epub.GeradorEPUB;
-import cotuba.md.RenderizadorMDParaHTML;
-import cotuba.pdf.GeradorPDF;
 
 import java.nio.file.Path;
 import java.util.List;
 
 public class Cotuba {
 
-    public void executa(String formato, Path diretorioDosMD, Path arquivoDeSaida) {
-        var renderizador = new RenderizadorMDParaHTML();
+    public void executa(ParametrosCotuba parametros) {
+        String formato = parametros.getFormato();
+        Path diretorioDosMD = parametros.getDiretorioDosMD();
+        Path arquivoDeSaida = parametros.getArquivoDeSaida();
+        var renderizador = RenderizadorMDParaHTML.cria();
         List<Capitulo> capitulos = renderizador.renderiza(diretorioDosMD);
 
         Ebook ebook = new Ebook();
@@ -21,10 +21,10 @@ public class Cotuba {
         ebook.setCapitulos(capitulos);
 
         if ("pdf".equals(formato)) {
-            var geradorPDF = new GeradorPDF();
+            var geradorPDF = GeradorPDF.cria();
             geradorPDF.gera(ebook);
         } else if ("epub".equals(formato)) {
-            var geradorEPUB = new GeradorEPUB();
+            var geradorEPUB = GeradorEPUB.cria();
             geradorEPUB.gera(ebook);
         } else {
             throw new IllegalArgumentException("Formato do ebook inválido: " + formato);

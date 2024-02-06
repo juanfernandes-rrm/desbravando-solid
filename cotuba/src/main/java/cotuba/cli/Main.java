@@ -16,15 +16,12 @@ public class Main {
 
         try {
 
-            var operacoesCLI = new LeitorOpcoesCLI(args);
-
-            diretorioDosMD = operacoesCLI.getDiretorioDosMD();
-            formato = operacoesCLI.getFormato();
-            arquivoDeSaida = operacoesCLI.getArquivoDeSaida();
-            modoVerboso = operacoesCLI.isModoVerboso();
+            var opcoesCLI = new LeitorOpcoesCLI(args);
+            arquivoDeSaida = opcoesCLI.getArquivoDeSaida();
+            modoVerboso = opcoesCLI.isModoVerboso();
 
             var cotuba = new Cotuba();
-            cotuba.executa(formato, diretorioDosMD, arquivoDeSaida);
+            cotuba.executa(opcoesCLI);
 
             System.out.println("Arquivo gerado com sucesso: " + arquivoDeSaida);
 
