@@ -1,9 +1,7 @@
 package cotuba.cli;
 
-import cotuba.CotubaConfig;
 import cotuba.application.Cotuba;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import cotuba.cli.LeitorOpcoesCLI;
 
 import java.nio.file.Path;
 
@@ -11,6 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
 
+        Path diretorioDosMD;
+        String formato;
         Path arquivoDeSaida;
         boolean modoVerboso = false;
 
@@ -20,8 +20,7 @@ public class Main {
             arquivoDeSaida = opcoesCLI.getArquivoDeSaida();
             modoVerboso = opcoesCLI.isModoVerboso();
 
-            ApplicationContext applicationContext = new AnnotationConfigApplicationContext(CotubaConfig.class);
-            Cotuba cotuba = applicationContext.getBean(Cotuba.class);
+            var cotuba = new Cotuba();
             cotuba.executa(opcoesCLI);
 
             System.out.println("Arquivo gerado com sucesso: " + arquivoDeSaida);
