@@ -16,12 +16,12 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
     private Path diretorioDosMD;
     private FormatoEbook formato;
     private Path arquivoDeSaida;
-    private boolean modoVerboso;
+    private boolean modoVerboso = false;
 
     public LeitorOpcoesCLI(String[] args) {
-        var options = criaOpcoes();
-        var cmd = parseDosArgumentos(args, options);
-        trataDiretoriosDosMD(cmd);
+        Options options = criaOpcoes();
+        CommandLine cmd = parseDosArgumentos(args, options);
+        trataDiretorioDosMD(cmd);
         trataFormato(cmd);
         trataArquivoDeSaida(cmd);
         trataModoVerboso(cmd);
@@ -44,7 +44,6 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
 
         var opcaoModoVerboso = new Option("v", "verbose", false,
                 "Habilita modo verboso.");
-
         options.addOption(opcaoModoVerboso);
         return options;
     }
@@ -52,18 +51,19 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
     private CommandLine parseDosArgumentos(String[] args, Options options) {
         CommandLineParser cmdParser = new DefaultParser();
         var ajuda = new HelpFormatter();
+        CommandLine cmd;
 
         try {
-            return cmdParser.parse(options, args);
+            cmd = cmdParser.parse(options, args);
         } catch (ParseException e) {
             ajuda.printHelp("cotuba", options);
-            throw new IllegalArgumentException("Opções inválidas", e);
+            throw new IllegalArgumentException("Opção inválida", e);
         }
+        return cmd;
     }
 
-    private void trataDiretoriosDosMD(CommandLine cmd) {
+    private void trataDiretorioDosMD(CommandLine cmd) {
         String nomeDoDiretorioDosMD = cmd.getOptionValue("dir");
-
         if (nomeDoDiretorioDosMD != null) {
             diretorioDosMD = Paths.get(nomeDoDiretorioDosMD);
             if (!Files.isDirectory(diretorioDosMD)) {
@@ -77,33 +77,30 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
 
     private void trataFormato(CommandLine cmd) {
         String nomeDoFormatoDoEbook = cmd.getOptionValue("format");
-
         if (nomeDoFormatoDoEbook != null) {
-            formato = FormatoEbook.valueOf(nomeDoFormatoDoEbook.toLowerCase());
+            formato = FormatoEbook.valueOf(nomeDoFormatoDoEbook.toUpperCase());
         } else {
             formato = FormatoEbook.PDF;
         }
     }
 
     private void trataArquivoDeSaida(CommandLine cmd) {
-        String nomeDoArquivoDeSaidaDoEbook = cmd.getOptionValue("output");
-        if (nomeDoArquivoDeSaidaDoEbook != null) {
-            arquivoDeSaida = Paths.get(nomeDoArquivoDeSaidaDoEbook);
-        } else {
-            arquivoDeSaida = Paths.get("book." + formato.name().toLowerCase());
-        }
-
         try {
+            String nomeDoArquivoDeSaidaDoEbook = cmd.getOptionValue("output");
+            if (nomeDoArquivoDeSaidaDoEbook != null) {
+                arquivoDeSaida = Paths.get(nomeDoArquivoDeSaidaDoEbook);
+            } else {
+                arquivoDeSaida = Paths.get("book." + formato.name().toLowerCase());
+            }
             if (Files.isDirectory(arquivoDeSaida)) {
                 // deleta arquivos do diretório recursivamente
                 Files.walk(arquivoDeSaida).sorted(Comparator.reverseOrder())
                         .map(Path::toFile).forEach(File::delete);
             } else {
-
                 Files.deleteIfExists(arquivoDeSaida);
             }
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
         }
     }
 
@@ -111,17 +108,14 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
         modoVerboso = cmd.hasOption("verbose");
     }
 
-    @Override
     public Path getDiretorioDosMD() {
         return diretorioDosMD;
     }
 
-    @Override
     public FormatoEbook getFormato() {
         return formato;
     }
 
-    @Override
     public Path getArquivoDeSaida() {
         return arquivoDeSaida;
     }
@@ -129,5 +123,4 @@ class LeitorOpcoesCLI implements ParametrosCotuba {
     public boolean isModoVerboso() {
         return modoVerboso;
     }
-
 }

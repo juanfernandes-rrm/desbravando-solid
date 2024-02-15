@@ -1,7 +1,6 @@
 package cotuba.cli;
 
 import cotuba.application.Cotuba;
-import cotuba.cli.LeitorOpcoesCLI;
 
 import java.nio.file.Path;
 
@@ -9,8 +8,6 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Path diretorioDosMD;
-        String formato;
         Path arquivoDeSaida;
         boolean modoVerboso = false;
 
