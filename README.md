@@ -6,23 +6,7 @@ No livro, a aplicação Cotuba, um gerador de ebook do formato ***.md*** para **
 - Java 17
 - Maven 3.8+
 
-## Como utilizar
-Execute o seguinte comando para fazer a build do projeto e gerar o arquivo `.zip`:
-
- `mvn clean package`
-
-O arquivo sera gerado na pasta ***target***, descompacte em algum diretório e exucete os comandos abaixo neste diretório.
-
-### Gerar PDF
-`./cotuba.sh -d diretorio/do/livro -f pdf`
-
-### Gerar EPUB
-`./cotuba.sh -d diretorio/do/livro -f epub`
-
-### Você também pode utilizar o diretório de exemplos presente no projeto
-- `./cotuba.sh -d desbravando-solid/cotuba/livro-exemplo -f pdf`
-- `./cotuba.sh -d desbravando-solid/cotuba/livro-exemplo -f epub`
-  
+## [Como utilizar](https://github.com/juanfernandes-rrm/desbravando-solid/tree/main/cotuba)
 
 ## Orientação a Objetos X SOLID
 Orientação a Objetos (OO) é um paradigma de programação que tem como objetivo aproximar o mundo real do código, permitindo uma representação mais clara e eficaz de problemas complexos. Nesse modelo, os conceitos do mundo real são traduzidos em objetos, que combinam dados e comportamento, tornando a programação mais intuitiva e organizada.
