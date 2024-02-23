@@ -121,3 +121,37 @@ No entanto, é importante aplicar o DIP com cautela. Pode acontecer de existir u
 
 Portanto, é essencial entender quais pontos de um projeto devem permanecer abertos e flexíveis, justificando a real necessidade de abstrações. Essas abstrações devem ser aplicadas de forma seletiva em pontos específicos do código.
 
+## Plugins: OCP ao extremo
+
+Diante da demanda por novas funcionalidades no Cotuba, que a equipe de desenvolvimento atual não pode atender imediatamente, surge a necessidade de permitir a extensão do software por terceiros. Essa solução é viabilizada por meio dos plugins.
+
+Um plugin representa um ponto de extensão que possibilita a aplicação de classes desenvolvidas externamente durante a execução da aplicação, sem que essas classes estejam integradas ao código principal do projeto.
+
+Para que isso ocorra, é necessário definir uma abstração que represente o plugin. No caso do Cotuba, vamos estabelecer dois métodos em uma interface chamada Plugin: 
+
+- ***aposRenderizacao(String html)***: permite customização após a renderização do HTML.
+- ***aposGerar(Ebook ebook)***: permite customização após gerar o ebook.
+
+Este tipo de plugin que está relacionando a ciclos de vida da aplicação são chamados de ***hooks***.
+
+Com abstração definida, quem desejar criar um plugin para o Cotuba deve criar um projeto, adicionar o Cotuba como dependência, e criar uma classe que implemente a interface Plugin.
+
+Com isso, temos um ponto de extensão, mas como é feito a ligação com uma implementação independente? Esse problema é resolvido a partir do Java SE 6, com a ***Service Loader API*** 
+
+> Na Service Loader API, um ponto de extensão é chamado de service. Para provermos um service precisamos de:
+> 
+
+> Service Provider Interface (SPI): Interface ou classes abstratas que definem a assinatura do ponto de extensão.
+> 
+
+> Service Providers: uma ou mais implementações da SPI.
+> 
+
+No caso do Cotuba, a interface Plugin é uma SPI, e as implementações dela são Service Providers.
+
+Para fazer a ligação da Service Provider com a SPI, é necessário que o JAR da provider declare o ***provider configuration file***, arquivo com o nome (***fully qualified name***)  da SPI dentro da pasta ***META-INF/services***. Dessa forma, através da presença do .jar, a Servide Loader API fará com que o comportamento da aplicação seja estendido sem necessitar de uma modificação, seguindo o princípio OCP.
+
+Então, para usar a Service Provider API, utilizamos a classe java.util.ServiceLoader que fornece o método load, que recebe como parâmetro SPI e retorna uma instância de ServiceLoader com todas as implementações de SPI presentes nos jars disponíveis no ClassPath. Após isso, definimos dois métodos estáticos na SPI, renderizou e gerou, e utilizamos a ServiceLoader para buscar plugins. Esses métodos são chamados após a renderização do HTML, na classe ***RenderizadorMDParaHTML***, e geração do Ebook, na classe ***Cotuba***.
+
+Desse modo, foi possível criar para essas duas etapas um ponto de extensão sem precisar criar modificações no código.
+
