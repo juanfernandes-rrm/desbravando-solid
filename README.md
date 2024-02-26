@@ -6,23 +6,7 @@ No livro, a aplicação Cotuba, um gerador de ebook do formato ***.md*** para **
 - Java 17
 - Maven 3.8+
 
-## Como utilizar
-Execute o seguinte comando para fazer a build do projeto e gerar o arquivo `.zip`:
-
- `mvn clean package`
-
-O arquivo sera gerado na pasta ***target***, descompacte em algum diretório e exucete os comandos abaixo neste diretório.
-
-### Gerar PDF
-`./cotuba.sh -d diretorio/do/livro -f pdf`
-
-### Gerar EPUB
-`./cotuba.sh -d diretorio/do/livro -f epub`
-
-### Você também pode utilizar o diretório de exemplos presente no projeto
-- `./cotuba.sh -d desbravando-solid/cotuba/livro-exemplo -f pdf`
-- `./cotuba.sh -d desbravando-solid/cotuba/livro-exemplo -f epub`
-  
+## [Como utilizar](https://github.com/juanfernandes-rrm/desbravando-solid/tree/main/cotuba)
 
 ## Orientação a Objetos X SOLID
 Orientação a Objetos (OO) é um paradigma de programação que tem como objetivo aproximar o mundo real do código, permitindo uma representação mais clara e eficaz de problemas complexos. Nesse modelo, os conceitos do mundo real são traduzidos em objetos, que combinam dados e comportamento, tornando a programação mais intuitiva e organizada.
@@ -120,4 +104,38 @@ Dessa forma, o Princípio DIP é respeitado, pois separa as camadas de alto e ba
 No entanto, é importante aplicar o DIP com cautela. Pode acontecer de existir uma interface que tenha apenas uma implementação. Nesse caso, mesmo que isso desrespeite o princípio, pode não ser necessário, pois criar mais código para manter a abstração não ofereceria vantagens significativas.
 
 Portanto, é essencial entender quais pontos de um projeto devem permanecer abertos e flexíveis, justificando a real necessidade de abstrações. Essas abstrações devem ser aplicadas de forma seletiva em pontos específicos do código.
+
+## Plugins: OCP ao extremo
+
+Diante da demanda por novas funcionalidades no Cotuba, que a equipe de desenvolvimento atual não pode atender imediatamente, surge a necessidade de permitir a extensão do software por terceiros. Essa solução é viabilizada por meio dos plugins.
+
+Um plugin representa um ponto de extensão que possibilita a aplicação de classes desenvolvidas externamente durante a execução da aplicação, sem que essas classes estejam integradas ao código principal do projeto.
+
+Para que isso ocorra, é necessário definir uma abstração que represente o plugin. No caso do Cotuba, vamos estabelecer dois métodos em uma interface chamada Plugin: 
+
+- ***aposRenderizacao(String html)***: permite customização após a renderização do HTML.
+- ***aposGerar(Ebook ebook)***: permite customização após gerar o ebook.
+
+Este tipo de plugin que está relacionando a ciclos de vida da aplicação são chamados de ***hooks***.
+
+Com abstração definida, quem desejar criar um plugin para o Cotuba deve criar um projeto, adicionar o Cotuba como dependência, e criar uma classe que implemente a interface Plugin.
+
+Com isso, temos um ponto de extensão, mas como é feito a ligação com uma implementação independente? Esse problema é resolvido a partir do Java SE 6, com a ***Service Loader API*** 
+
+> Na Service Loader API, um ponto de extensão é chamado de service. Para provermos um service precisamos de:
+> 
+
+> Service Provider Interface (SPI): Interface ou classes abstratas que definem a assinatura do ponto de extensão.
+> 
+
+> Service Providers: uma ou mais implementações da SPI.
+> 
+
+No caso do Cotuba, a interface Plugin é uma SPI, e as implementações dela são Service Providers.
+
+Para fazer a ligação da Service Provider com a SPI, é necessário que o JAR da provider declare o ***provider configuration file***, arquivo com o nome (***fully qualified name***)  da SPI dentro da pasta ***META-INF/services***. Dessa forma, através da presença do .jar, a Servide Loader API fará com que o comportamento da aplicação seja estendido sem necessitar de uma modificação, seguindo o princípio OCP.
+
+Então, para usar a Service Provider API, utilizamos a classe java.util.ServiceLoader que fornece o método load, que recebe como parâmetro SPI e retorna uma instância de ServiceLoader com todas as implementações de SPI presentes nos jars disponíveis no ClassPath. Após isso, definimos dois métodos estáticos na SPI, renderizou e gerou, e utilizamos a ServiceLoader para buscar plugins. Esses métodos são chamados após a renderização do HTML, na classe ***RenderizadorMDParaHTML***, e geração do Ebook, na classe ***Cotuba***.
+
+Desse modo, foi possível criar para essas duas etapas um ponto de extensão sem precisar criar modificações no código.
 
