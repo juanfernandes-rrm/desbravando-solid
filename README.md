@@ -139,3 +139,27 @@ Então, para usar a Service Provider API, utilizamos a classe java.util.ServiceL
 
 Desse modo, foi possível criar para essas duas etapas um ponto de extensão sem precisar criar modificações no código.
 
+## Princípio de Substituição de Liskov (LSP): Herança do jeito certo
+
+Este princípio, cunhado pela cientista ***Barbara Liskov***, estabelece que:
+
+> "A ideia intuitiva de um subtipo é aquela cujos objetos fornecem todo o comportamento de objetos de outro tipo (o supertipo) mais algo extra."
+> 
+
+No entanto, é importante ressaltar que não basta que um subtipo tenha a mesma assinatura dos métodos do supertipo, ele também deve ter o mesmo comportamento. Por exemplo, uma pilha e uma fila podem ter métodos com as mesmas assinaturas, mas seus comportamentos serão diferentes.
+
+Uncle Bob resgata esse princípio para o SOLID:
+
+> Subtipos devem ser substituíveis por seus tipos base.
+> 
+
+Em outras palavras, ao utilizar a herança de maneira correta, uma classe filha poderá ser substituída por sua classe mãe. Porém, para que isso seja válido, a classe filha deve herdar todos os comportamentos da classe mãe. Caso contrário, o LSP é violado.
+
+Um exemplo disso pode ser observado no projeto estatistica-ebook, que necessita contar as palavras de um ebook. Uma solução inicial seria criar uma classe ContagemDePalavras, herdando de TreeMap e implementando o método `adicionarPalavra`. No entanto, essa abordagem violaria o LSP, pois a classe ContagemDePalavras não seria substituível por sua classe mãe, uma vez que não forneceria suporte a todos os métodos dela.
+
+Uma abordagem mais adequada seria utilizar a composição, onde a classe TreeMap seria um atributo privado da classe ContagemDePalavras.
+
+Outro exemplo de violação do LSP pode ser observado nas classes que implementam a SPI Plugin do Cotuba. No projeto estatistica-ebook, a classe CalculadoraDeEstatisticas implementa a interface Plugin, mas sobrescreve apenas o comportamento de `aposGeracao`, enquanto a classe TemaParadizo, do projeto tema-paradizo, sobrescreve apenas `aposRenderizacao`. Dessa forma, nenhuma das subclasses é substituível pela superclasse, pois elas realizam menos atividades do que ela.
+
+Por fim, a literatura enfatiza a preferência pela composição em relação a herança. Isso ocorre devido ao uso incorreto da herança, que pode causar um forte acoplamento entre classes desnecessariamente. A herança deve ser utilizada apenas nos casos em que uma subclasse é verdadeiramente um subtipo de sua superclasse, onde existe uma relação de "é um". Caso contrário, a composição é mais adequada, uma vez que a dependência é apenas um detalhe de implementação.
+
