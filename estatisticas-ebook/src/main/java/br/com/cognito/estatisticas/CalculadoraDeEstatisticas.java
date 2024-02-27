@@ -1,24 +1,20 @@
 package br.com.cognito.estatisticas;
 
-import cotuba.domain.Capitulo;
-import cotuba.domain.Ebook;
-import cotuba.plugin.Plugin;
+import cotuba.plugin.AoFinalizarGeracao;
+import cotuba.plugin.CapituloSoParaLeitura;
+import cotuba.plugin.EbookSoParaLeitura;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.text.Normalizer;
 import java.util.Map;
 
-public class CalculadoraDeEstatisticas implements Plugin {
-    @Override
-    public String aposRenderizacao(String html) {
-        return html;
-    }
+public class CalculadoraDeEstatisticas implements AoFinalizarGeracao {
 
     @Override
-    public void aposGeracao(Ebook ebook) {
+    public void aposGeracao(EbookSoParaLeitura ebook) {
         var contagemDePalavras = new ContagemDePalavras();
-        for (Capitulo capitulo : ebook.getCapitulos()) {
+        for (CapituloSoParaLeitura capitulo : ebook.getCapitulos()) {
             String html = capitulo.getConteudoHTML();
             Document document = Jsoup.parse(html);
             String textoDoCapitulo = document.body().text();
