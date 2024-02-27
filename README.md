@@ -163,3 +163,31 @@ Outro exemplo de violação do LSP pode ser observado nas classes que implementa
 
 Por fim, a literatura enfatiza a preferência pela composição em relação a herança. Isso ocorre devido ao uso incorreto da herança, que pode causar um forte acoplamento entre classes desnecessariamente. A herança deve ser utilizada apenas nos casos em que uma subclasse é verdadeiramente um subtipo de sua superclasse, onde existe uma relação de "é um". Caso contrário, a composição é mais adequada, uma vez que a dependência é apenas um detalhe de implementação.
 
+## Princípio da Segregação de Interfaces (ISP): Clientes separados, interfaces separadas
+
+Este princípio trata da coesão das abstrações, ou seja, se a abstração fornece um contrato simples e significativo para o cliente. Caso contrário, se a resposta for não, a abstração não é coesa e deve ser refatorada para atender ao cliente de forma adequada.
+
+Uncle Bob esclarece esse pensamento definindo o princípio:
+
+> Clientes não devem ser obrigados a depender de métodos que eles não usam.
+> 
+
+> Muitas interfaces específicas para cada cliente são melhores que uma interface de propósito geral.
+> 
+
+> Clientes separados, interfaces separadas.
+> 
+
+Com uma abstração que apresenta comportamentos simples e bem definidos, os clientes enfrentam menos dificuldades com alterações em outros pontos do sistema.
+
+No contexto do Cotuba, encontramos uma violação desse princípio na SPI Plugin, que define dois métodos: `aposRenderizacao` e `aposGeracao`. No entanto, as Service Providers dessa interface não utilizam ambos os métodos; cada uma utiliza apenas um. Para atender ao ISP, devemos refatorar a SPI em duas interfaces separadas para atender aos clientes de forma coesa. Assim, criaremos uma interface para o hook de renderização do HTML (`AoRenderizarHTML`) e outra para a geração de ebook (`AoFinalizarGeracao`).
+
+Outro ponto importante é pensar em interfaces específicas para quem as usa. Por exemplo, consideremos uma classe que representa uma nota fiscal, com atributos de endereço de cobrança, dados do cliente e itens da nota; e uma classe que calcula impostos com base nesses dados. Essa classe de cálculo realmente precisa de acesso a todos os atributos da classe nota fiscal? Não necessariamente. Ao fornecer acesso a todos os dados, tornamos nossa classe nota fiscal vulnerável a implementações maliciosas. Para resolver esse problema, podemos criar uma interface que forneça apenas os dados necessários para o cálculo de imposto. Ao implementar essa interface na classe nota fiscal, a classe de cálculo poderia receber apenas a interface, protegendo assim a classe nota fiscal enquanto fornece acesso apenas aos dados necessários para o cálculo.
+
+> Se você tiver uma classe que tenha vários clientes, em vez de carregar a classe com todos os métodos de que os clientes precisam, crie interfaces específicas para cada cliente e implemente-as na classe.
+>
+> -- <cite> Uncle Bob </cite>
+
+Uma situação semelhante ocorre no Cotuba. A SPI `AoFinalziarGeracao` possui o método `aposGeracao`que permite acesso e modificação (getters e setters) do ebook que foi gerado. Dessa forma, Service Providers mal-intencionados poderiam alterar o conteúdo do ebook, como capítulos.
+
+Para evitar isso, vamos proteger nosso modelo de domínio com interfaces. Criamos interfaces que definem apenas os métodos getters das classes de domínio, e as classes de domínio implementam essas interfaces. Com isso, podemos permitir acesso apenas a essas interfaces, que fornecem apenas acesso aos atributos.
