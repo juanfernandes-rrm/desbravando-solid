@@ -191,3 +191,181 @@ Outro ponto importante é pensar em interfaces específicas para quem as usa. Po
 Uma situação semelhante ocorre no Cotuba. A SPI `AoFinalziarGeracao` possui o método `aposGeracao`que permite acesso e modificação (getters e setters) do ebook que foi gerado. Dessa forma, Service Providers mal-intencionados poderiam alterar o conteúdo do ebook, como capítulos.
 
 Para evitar isso, vamos proteger nosso modelo de domínio com interfaces. Criamos interfaces que definem apenas os métodos getters das classes de domínio, e as classes de domínio implementam essas interfaces. Com isso, podemos permitir acesso apenas a essas interfaces, que fornecem apenas acesso aos atributos.
+
+
+## Imutabilidade e encapsulamento
+
+No capítulo 8, foram introduzidas as interfaces `CapituloSoParaLeitura` e `EbookSoParaLeitura`,
+contendo apenas getters para proteger o modelo de domínio. Embora isso tenha permitido atender ao ISP, houve uma violação do DIP, uma vez que o código de alto nível passou a depender do código de baixo nível.
+
+No entanto, existe uma solução que respeita o DIP e protege nossas classes de domínio? Essa solução é viável com o uso da imutabilidade.
+
+Uma classe imutável é aquela cujos atributos não mudam de estado após a instanciação. Portanto, não inclui setters e seus atributos são declarados como final. Para permitir a criação de objetos, recorremos a métodos construtores.
+
+Além disso, métodos que aparentemente modificariam o objeto criam, na verdade, novos objetos com novos valores. É importante também que a classe seja final, para evitar a possibilidade de herança.
+Para garantir a imutabilidade mesmo em composições com objetos mutáveis, é necessária uma cópia defensiva. Por exemplo, no caso de uma lista, podemos usar métodos como `unmodifiableList`, `List.of`, ou `stream.toList`.
+
+***Michael Feathers*** estabelece algumas regras para garantir a imutabilidade:
+
+- Não forneça nenhum método que modifique o estado do objeto.
+- Assegure que a classe não possa ser estendida.
+- Defina todos os atributos como final.
+- Faça com que todos os atributos sejam privados.
+- Assegure acesso exclusivo a qualquer composição com objetos mutáveis.
+
+Embora os objetos imutáveis possuam vantagens como simplicidade e thread-safety, eles também têm desvantagens, como o uso elevado de memória.
+
+No Cotuba, vamos tornar as classes de domínio imutáveis.
+
+### Design Pattern: Builder
+
+Durante a refatoração do Cotuba para tornar as classes de domínio imutáveis, nos deparamos com um problema na criação de objetos em etapas. Isso motivou a introdução do Design Pattern Builder, que permite a construção de objetos complexos em etapas, de maneira independente das partes que os compõem.
+
+```java
+Capitulo capitulo = new CapituloBuilder()
+  .comTitulo(tituloDoCapitulo);
+  .comConteudoHTML(htmlModificado)
+  .constroi();
+```
+
+O padrão Builder facilita a instanciação, fornecendo métodos intermediários que retornam o próprio builder, possibilitando chamadas encadeadas.
+
+Use o Builder pattern quando:
+
+> o algoritmo para criar um objeto complexo deve ser independente das partes que compõem o objeto e como elas são montadas.
+> 
+
+> e o processo de construção deve permitir diferentes representações para o objeto que é construído
+> 
+
+> GoF - Design Patterns
+> 
+
+### Imutabilidade com Records
+
+A partir do Java 16, temos o recurso dos ***Records***, uma sintaxe para representar classes imutáveis de maneira simples.
+
+```java
+public record Capitulo(String capitulo, String conteudoHTML) {
+}
+```
+
+Os Records geram automaticamente atributos imutáveis e métodos de acesso para cada componente, além de implementações de `equals`, `hashCode`, e `toString`.
+
+### Encapsulamento
+
+O encapsulamento é essencial para garantir a integridade e a segurança do código. Evita a exposição indevida de detalhes de implementação e protege os objetos de acesso não autorizado.
+
+Um dos maiores problemas em códigos, segundo Kent Beck e Martin Fowler é a ***inveja de funcionalidades:***
+
+> A essência dos objetos é que eles são uma técnica para empacotar dados com os processamentos desses dados.
+> 
+
+> Um indício clássico de problema é um método que parece mais interessado em uma classe diferente daquela na qual ele se encontra.
+> 
+
+> O foco mais comum da inveja são os dados.
+> 
+
+***Andy Hunt e Dave Thomas***, ilustram o problema de inveja de funcionalidade com a seguinte analogia:
+
+> Suponha que o entregador de jornais vá até a sua porta, demandando o pagamento da semana. Você vira, o entregador puxa a carteira do bolso traseiro da sua calça, tira duas notas e devolve sua carteira.
+> 
+
+Nessa lógica, código bom é código tímido. Isto é, código reservado, que não revela muito de si e conversa somente o necessário, evitando expor suas coisas privadas. Ou seja, código tímido é código encapsulado, que preza por esconder o máximo possível suas implementações e suas informações.
+
+Vale lembrar que apenas modificadores de acesso privados não garante o encapsulamento de uma classe, uma vez que detalhes de uma classe podem ser obtidos através de getters e setters. E nem mesmo evitando setters, o encapsulamento ainda pode ser quebrado através de getters.
+
+Outra forma de violar o encapsulamento é através da Herança. Ao herdar de uma classe, a subclasse tem acesso as implementações da superclasse, e ao ocorrer uma mudança na superclasse, pode ser que a subclasse precise mudar, tornando o código acoplado. Por isso, no livro Design Patterns, é afirmado que há um conflito entre herança e encapsulamento.
+
+Uma alternativa para manter código com fácil manutenção e entendimento é aplicar encapsulamento e imutabilidade, limitando o nosso código. Com a imutabilidade impedimos mudanças de estados em objeto e com encapsulamento restringimos a camada de compartilhamento entre objetos.
+
+***Michael Feathers***, define essas restrições como ***Arquitetura Negativa***.
+
+> “Você pode olhar para essa área do seu código e saber que tem uma coisa a menos para pensar/preocupar-se.”
+> 
+
+### Lei de Deméter
+
+Uma forma de garantir o encapsulamento é seguindo a Lei de Deméter que afirmar que todo método de um objeto deve chamar apenas métodos pertencentes a:
+
+> si mesmo
+> 
+
+> quaisquer parâmetros que foram passados para o método
+> 
+
+> quaisquer objetos criados
+> 
+
+> qualquer composição
+> 
+
+Ou seja, apenas interagir com vizinhos diretos.
+
+Essa lei é complementada com o lema ***“Tell, don`t ask”*** de ***Andy Hunt e Dave Thomas***.
+
+> Envie comandos para objetos dizendo o que você quer fazer. Explicitamente, não queremos consultar um objeto sobre seu estado, tomar uma decisão e, então, dizer ao objeto o que fazer.
+> 
+
+### Design Pattern: Iterator
+
+Pensando no encapsulamento, na projeto estatistica-ebook, temos um for-each para percorrer os dados da classe `ContagemDePalavras`. Porém da maneira que está sendo feito atualmente, o detalhe da implementação está sendo exposto às classes que utilizam o método entrySet, quebrando o encapsulamento.
+
+```java
+for(Map.Entry<String, Integer> contagem : contagemDePalavras.entrySet()){
+                String palavra = contagem.getKey();
+                Integer ocorrencias = contagem.getValue();
+                System.out.println(palavra + ": " + ocorrencias);
+```
+
+Para resolver esse problema, seria interessante percorrer o próprio objeto ContagemDePalavras em um for-each, sem expor a implementação. Para isso, podemos utilizar o padrão ***Iterator***, que permite que os detalhes da estrutura de dados usado (List, Set, entre outros) sejam encapsulados no objeto.
+
+A `API Collections` do Java oferece a a interface `Iterator`, que define os métodos hasNext e next. Podemos utilizá-la para retornar o próprio objeto, e este seja utilizado para iterar. Para facilitar, definimos um record com os componentes que precisamos, que será o objeto a ser iterado. Mas precisamos definir uma classe anônima que implemente o métodos de Iterator.
+
+```java
+public Iterator<Contagem> iterator() {
+
+        Iterator<Map.Entry<String, Integer>> iterator = this.map.entrySet().iterator();
+
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Contagem next() {
+                Map.Entry<String, Integer> entry = iterator.next();
+                String palavra = entry.getKey();
+                int ocorrencias = entry.getValue();
+                return new Contagem(palavra, ocorrencias);
+            }
+        };
+    }
+```
+
+Dessa forma, temos um objeto que pode ser percorrido através dos métodos hasNext e next. Mas dessa maneira temos uma iteração externa.
+
+```java
+Iterator<ContagemDePalavras.Contagem> iterator = contagemDePalavras.iterator();
+
+while(iterator.hasNext()) {
+	ContagemDePalavras.Contagem contagem = iterator.next();	
+}
+```
+
+Podemos utilizar a ***Interação Interna***, que controla o valores fornecidos para o cliente, ao fazer com ContagemDePalavras implemente a interface ***Iterable*** e o método ***iterator***. Dessa maneira, ela poderia ser utilizada diretamente em um for-each.
+
+```java
+class ContagemDePalavras implements Iterable<ContagemDePalavras.Contagem>{
+}
+```
+
+```java
+for(ContagemDePalavras.Contagem contagem : contagemDePalavras) {
+                System.out.println(contagem.palavra() + " - " + contagem.ocorrencias());
+            }
+```
+
+Utilizando o Iterator, podemos iterar sobre o objeto sem expor sua implementação interna, promovendo assim um maior encapsulamento.
