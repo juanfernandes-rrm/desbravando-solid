@@ -1,6 +1,7 @@
 package cotuba.md;
 
 import cotuba.domain.Capitulo;
+import cotuba.domain.builder.CapituloBuilder;
 import cotuba.plugin.AoRenderizarHTML;
 import org.commonmark.node.AbstractVisitor;
 import org.commonmark.node.Heading;
@@ -23,10 +24,10 @@ public class RenderizadorMDParaHTML {
         return obtemArquivosMD(diretorioDosMD)
                 .stream()
                 .map(arquivoMD -> {
-                    Capitulo capitulo = new Capitulo();
-                    Node document = parseDoMD(arquivoMD, capitulo);
-                    renderizaParaHTML(arquivoMD, capitulo, document);
-                    return capitulo;
+                    CapituloBuilder capituloBuilder = new CapituloBuilder();
+                    Node document = parseDoMD(arquivoMD, capituloBuilder);
+                    renderizaParaHTML(arquivoMD, capituloBuilder, document);
+                    return capituloBuilder.constroi();
                 }).toList();
     }
 
@@ -39,7 +40,7 @@ public class RenderizadorMDParaHTML {
         }
     }
 
-    private Node parseDoMD(Path arquivoMD, Capitulo capitulo) {
+    private Node parseDoMD(Path arquivoMD, CapituloBuilder capituloBuilder) {
         Parser parser = Parser.builder().build();
         Node document = null;
         try {
@@ -50,7 +51,7 @@ public class RenderizadorMDParaHTML {
                     if (heading.getLevel() == 1) {
                         // capítulo
                         String tituloDoCapitulo = ((Text) heading.getFirstChild()).getLiteral();
-                        capitulo.setTitulo(tituloDoCapitulo);
+                        capituloBuilder.comTitulo(tituloDoCapitulo);
                     } else if (heading.getLevel() == 2) {
                         // seção
                     } else if (heading.getLevel() == 3) {
@@ -65,13 +66,12 @@ public class RenderizadorMDParaHTML {
         }
     }
 
-    private void renderizaParaHTML(Path arquivoMD, Capitulo capitulo, Node document) {
+    private void renderizaParaHTML(Path arquivoMD, CapituloBuilder capituloBuilder, Node document) {
         try {
             HtmlRenderer renderer = HtmlRenderer.builder().build();
             String html = renderer.render(document);
-            capitulo.setConteudoHTML(html);
-            AoRenderizarHTML.renderizou(capitulo);
-            //epub.addSection("Capítulo", new Resource(html.getBytes(), MediatypeService.XHTML));
+            String htmlModificado = AoRenderizarHTML.renderizou(html);
+            capituloBuilder.comConteudoHTML(htmlModificado);
         } catch (Exception ex) {
             throw new IllegalStateException("Erro ao renderizar para HTML o arquivo " + arquivoMD, ex);
         }
