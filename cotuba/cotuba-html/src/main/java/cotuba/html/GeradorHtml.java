@@ -3,6 +3,7 @@ package cotuba.html;
 import cotuba.application.GeradorEbook;
 import cotuba.domain.Capitulo;
 import cotuba.domain.Ebook;
+import cotuba.domain.FormatoEbook;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,12 +15,12 @@ public class GeradorHtml implements GeradorEbook {
 
     @Override
     public void gera(Ebook ebook) {
-        Path arquivoDeSaida = ebook.getArquivoDeSaida();
+        Path arquivoDeSaida = ebook.arquivoDeSaida();
         try{
             Path diretorioDoHTML = Files.createDirectory(arquivoDeSaida);
 
             int i = 1;
-            for(Capitulo capitulo : ebook.getCapitulos()) {
+            for(Capitulo capitulo : ebook.capitulos()) {
                 String nomeDoArquivoHTMLDoCapitulo = obtemNomeDoArquivoHTMLDoCapitulo(i, capitulo);
                 Path arquivoHTMLDoCapitulo = diretorioDoHTML.resolve(nomeDoArquivoHTMLDoCapitulo);
                 String html = """
@@ -33,7 +34,7 @@ public class GeradorHtml implements GeradorEbook {
                                 %s
                             </body>
                         </html>
-                        """.formatted(capitulo.getTitulo(), capitulo.getConteudoHTML());
+                        """.formatted(capitulo.titulo(), capitulo.conteudoHTML());
                 Files.writeString(arquivoHTMLDoCapitulo, html, StandardCharsets.UTF_8);
                 i++;
             }
@@ -42,8 +43,13 @@ public class GeradorHtml implements GeradorEbook {
         }
     }
 
+    @Override
+    public FormatoEbook formato() {
+        return FormatoEbook.HTML;
+    }
+
     private String obtemNomeDoArquivoHTMLDoCapitulo(int i, Capitulo capitulo) {
-        String nomeArquivoHTMLCapitulo = i + "-" + removeAcentos(capitulo.getTitulo().toLowerCase()).replaceAll("[^\\w]", "") + ".html";
+        String nomeArquivoHTMLCapitulo = i + "-" + removeAcentos(capitulo.titulo().toLowerCase()).replaceAll("[^\\w]", "") + ".html";
         return nomeArquivoHTMLCapitulo;
     }
 
