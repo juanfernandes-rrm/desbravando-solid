@@ -1,6 +1,5 @@
 package cotuba.pdf;
 
-
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -12,6 +11,7 @@ import com.itextpdf.layout.property.AreaBreakType;
 import cotuba.application.GeradorEbook;
 import cotuba.domain.Capitulo;
 import cotuba.domain.Ebook;
+import cotuba.domain.FormatoEbook;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,29 +22,36 @@ public class GeradorPDF implements GeradorEbook {
     @Override
     public void gera(Ebook ebook) {
 
-        Path arquivoDeSaida = ebook.getArquivoDeSaida();
+        Path arquivoDeSaida = ebook.arquivoDeSaida();
 
         try (var writer = new PdfWriter(Files.newOutputStream(arquivoDeSaida));
              var pdf = new PdfDocument(writer);
              var pdfDocument = new Document(pdf)) {
 
-            for (Capitulo capitulo : ebook.getCapitulos()) {
-                String html = capitulo.getConteudoHTML();
+            for (Capitulo capitulo : ebook.capitulos()) {
 
-                List<IElement> convertToElements = HtmlConverter.convertToElements(html);
+                String html = capitulo.conteudoHTML();
 
+                List<IElement> convertToElements =
+                        HtmlConverter.convertToElements(html);
                 for (IElement element : convertToElements) {
                     pdfDocument.add((IBlockElement) element);
                 }
 
-                if (!ebook.isUltimoCapitulo(capitulo)) {
+                if (!ebook.ultimoCapitulo(capitulo)) {
                     pdfDocument.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                 }
+
             }
+
         } catch (Exception ex) {
             throw new IllegalStateException("Erro ao criar arquivo PDF: " + arquivoDeSaida.toAbsolutePath(), ex);
         }
+    }
 
+    @Override
+    public FormatoEbook formato() {
+        return FormatoEbook.PDF;
     }
 
 }
