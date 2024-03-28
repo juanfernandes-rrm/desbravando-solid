@@ -369,3 +369,91 @@ for(ContagemDePalavras.Contagem contagem : contagemDePalavras) {
 ```
 
 Utilizando o Iterator, podemos iterar sobre o objeto sem expor sua implementação interna, promovendo assim um maior encapsulamento.
+
+
+## Princípios de coesão e acoplamento de módulos
+
+Módulos são componentes de organização de código que separa uma aplicação em “partes” independentes.
+
+Algumas características:
+
+- Implantáveis
+- Reusáveis
+- Testáveis
+- Gerenciáveis
+- Componíveis
+- Sem estado
+
+Essa são as mesmas características de um JAR (Java Archieve), arquivo compactado no formato zip que contêm pacotes e classes. Por isso, em Java, um módulo é um JAR.
+
+O uso de módulo permite que uma aplicação tenha facilidade na capacidade de troca de módulos, compreensão de código, desenvolvimento paralelo, testabilidade, e flexibilidade.
+
+Para definir a divisão de um código em módulos, Uncle Bob apresenta alguns princípios para manter a coesão.
+
+### Princípio da Equivalência entre Entrega e Reúso (REP)
+
+Para permitir o reúso de código por terceiro, é necessário pensar em como fazer a entrega de módulos. Existe algumas alternativas como um site próprio, repositório remotos (GitHub, GitLab, etc.), repositório centrais do Maven e Grandle, ou gerenciadores de artefatos (Nexus).
+
+Ao utilizar alguma dessas opções, ao finalizar uma alteração no código, acontece o processo de publicação de uma nova versão. Somente módulos que seguem esse processo podem ser considerados reusáveis.
+
+É importante ressaltar que um módulo é indivisível, ou seja, não é possível usar somente parte de um módulo, ele é uma estrutura atômica. Por isso, podemos concluir que existe uma equivalência entre a entrega e reúso do módulo.
+
+### Princípio do Agrupamento Comum (CCP)
+
+Seguindo a mesma ideia do SRP, para evitar grandes problemas quando ocorrer mudanças em uma aplicação, é recomendado que estas mudanças sejam feitas em um módulo. Para isso, um módulo deve ser formado apenas por classes que tenham um mesmo motivo para serem modificadas. Dessa forma, uma mudança ocorre apenas em um módulo e não em vários.
+
+### Princípio do Reúso Comum (CRP)
+
+Este princípio é equivalente ao ISP, um módulo não deve fornece classes que são utilizadas apenas por parte dos clientes, já que uma uma mudança que não seria necessária para parte dos clientes resulta na necessidade de uma nova publicação. Um módulo deve fornecer apenas as classes que todos os clientes usam.
+
+### Módulos Maven
+
+O Maven permite a modularização de uma aplicação (multi-module project). Dessa forma, um projeto pode ter vários módulos, e o Maven se responsabiliza por gerenciar as dependências e fazer a build de cada um de forma ordenada. Para isso, é necessário criar um supermódulo, que contêm os submódulos.
+
+### Princípios de acoplamento de módulos
+
+Normalmente, aplicações fazem o uso de módulos, e isto causa uma dependência e por tanto um acoplamento. Para minimizar este acoplamento, Uncle Bob define os princípios de acoplamento de módulos.
+
+### Princípio das Dependências Acíclicas (ADP)
+
+Ocorre um ciclo de dependências quando um módulo depende de outro e vice-versa. Isso pode fazer com que um módulo dependa de um outro módulo que dependa de outro módulo (dependência transitiva), sendo este último desnecessário para o primeiro módulo.
+
+Isso pode causar problemas na compilação, já que a build deve ser feita em ordem hierarquia de módulos. Em casos de dependências cíclicas, a hierarquia é quebrada.
+
+Para evitar esse problema, podemos inverter as dependências através de abstração. No exemplo do Cotuba, o módulo cotuba-core poderia fornecer uma abstração (Interface SPI GeracaoEbook) para os módulos cotuba-pdf, cotuba-epub e cotuba-html. Dessa forma, os módulos ficariam responsáveis por implementar a abstração, evitando que cotuba-core tenha dependência com esses módulos, além praticar o Princípio do Reúso Comum ao evitar que clientes recebam dependências desnecessárias.
+
+### Princípio das Dependências Estáveis (SDP)
+
+A estabilidade de um módulo está relacionada ao nível de atenção e cuidado que se deve ter ao realizar uma mudança. Essa métrica pode ser medida com quantidade de módulos dependentes, quanto mais módulos dependerem de um módulo, maior a estabilidade desse módulo.
+
+Essa métrica é utiliza para ajudar na escolha da divisão de uma aplicação em módulos. Devemos fazer com que a aplicação tenha a menor quantidade de módulos estáveis possível, e que a dependência entre módulos sejam feita na direção da estabilidade.
+
+### Princípio das Abstrações Estáveis (SAP)
+
+Um módulo estável pode trazer grande dificuldade para mudanças, por isso é importante que um módulo estável seja o mais abstrato possível, pois permite extensão e por tanto flexibilidade. Esse é o princípio das abstrações estáveis: um módulo deve ser tão abstrato quanto for estável.
+
+### Métrica instabilidade
+
+Métrica definida por Uncle Bob para definir a instabilidade I de um módulo. Por ser calculada da seguinte forma:
+
+- Fan-in: número de dependências de entradas, ou seja, número de módulos que são dependes  do módulo alvo.
+- Fan-out: número de dependências de saídas, ou seja, número de módulos que são dependências do módulo alvo.
+- I = fan-out / (fan-in + fan-out)
+
+O valor de I será entre 0 e 1. O valor 0 indica que um módulo não tem dependências, mas outros módulos dependem dele, representando o máximo de estabilidade. 
+
+E o valor 1 indica que o módulo depende de outros módulos, mas não é dependência de nenhum outro módulo, representando o o máximo de instabilidade.
+
+### Métrica abstratividade
+
+Uncle Bob ainda define outra métrica. Abstratividade é proporção de abstrações que um módulo possuí. Essa métrica pode ser calculada da seguinte forma:
+
+- Na: número de classes abstratas e interfaces no módulo.
+- Nc: número total de tipos, somando classes e interfaces.
+- A = Na / Nc
+
+O valor de A será entre 0 e 1. O valor 0 indica que o módulo não possui nenhuma classe abstrata ou interface.
+
+E o valor 1 indica que o módulo tem somente classes abstratas ou interfaces.
+
+Segundo o SAP, a abstratividade deve seguir a estabilidade de um módulo, portanto, quanto menor a instabilidade (maior estabilidade), maior a abstratividade.
