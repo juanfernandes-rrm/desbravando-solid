@@ -1,9 +1,9 @@
 package cotuba.epub;
 
-import cotuba.application.GeradorEbook;
 import cotuba.domain.Capitulo;
 import cotuba.domain.Ebook;
 import cotuba.domain.FormatoEbook;
+import cotuba.plugin.GeradorEbook;
 import nl.siegmann.epublib.domain.Book;
 import nl.siegmann.epublib.domain.Resource;
 import nl.siegmann.epublib.epub.EpubWriter;
@@ -15,35 +15,35 @@ import java.nio.file.Path;
 
 public class GeradorEPUB implements GeradorEbook {
 
-    @Override
-    public void gera(Ebook ebook) {
+  @Override
+  public FormatoEbook formato() {
+    return FormatoEbook.EPUB;
+  }
 
-        Path arquivoDeSaida = ebook.arquivoDeSaida();
+  @Override
+  public void gera(Ebook ebook) {
 
-        var epub = new Book();
+    Path arquivoDeSaida = ebook.arquivoDeSaida();
 
-        for (Capitulo capitulo : ebook.capitulos()) {
+    var epub = new Book();
 
-            String html = capitulo.conteudoHTML();
+    for (Capitulo capitulo : ebook.capitulos()) {
 
-            epub.addSection(capitulo.titulo(),
-                    new Resource(html.getBytes(), MediatypeService.XHTML));
+      String html = capitulo.conteudoHTML();
 
-        }
-
-        var epubWriter = new EpubWriter();
-
-        try {
-            epubWriter.write(epub, Files.newOutputStream(arquivoDeSaida));
-        } catch (IOException ex) {
-            throw new IllegalStateException("Erro ao criar arquivo EPUB: " + arquivoDeSaida.toAbsolutePath(), ex);
-        }
+      epub.addSection(capitulo.titulo(),
+          new Resource(html.getBytes(), MediatypeService.XHTML));
 
     }
 
-    @Override
-    public FormatoEbook formato() {
-        return FormatoEbook.EPUB;
+    var epubWriter = new EpubWriter();
+
+    try {
+      epubWriter.write(epub, Files.newOutputStream(arquivoDeSaida));
+    } catch (IOException ex) {
+      throw new IllegalStateException("Erro ao criar arquivo EPUB: " + arquivoDeSaida.toAbsolutePath(), ex);
     }
+
+  }
 
 }

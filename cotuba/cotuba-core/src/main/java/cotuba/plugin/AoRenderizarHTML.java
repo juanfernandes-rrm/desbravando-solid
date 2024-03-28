@@ -1,11 +1,8 @@
 package cotuba.plugin;
 
-import cotuba.domain.Capitulo;
-
 import java.util.ServiceLoader;
 
 public interface AoRenderizarHTML {
-
     String aposRenderizacao(String html);
 
     static String renderizou(String html) {
@@ -17,3 +14,4 @@ public interface AoRenderizarHTML {
     }
 
 }
+

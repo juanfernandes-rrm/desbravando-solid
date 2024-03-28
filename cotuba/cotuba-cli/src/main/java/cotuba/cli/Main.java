@@ -6,29 +6,30 @@ import java.nio.file.Path;
 
 public class Main {
 
-    public static void main(String[] args) {
+  public static void main(String[] args) {
 
-        Path arquivoDeSaida;
-        boolean modoVerboso = false;
+    Path arquivoDeSaida;
+    boolean modoVerboso = false;
 
-        try {
+    try {
 
-            var opcoesCLI = new LeitorOpcoesCLI(args);
-            arquivoDeSaida = opcoesCLI.getArquivoDeSaida();
-            modoVerboso = opcoesCLI.isModoVerboso();
+      LeitorOpcoesCLI opcoesCLI = new LeitorOpcoesCLI(args);
 
-            var cotuba = new Cotuba();
-            cotuba.executa(opcoesCLI);
+      arquivoDeSaida = opcoesCLI.getArquivoDeSaida();
+      modoVerboso = opcoesCLI.isModoVerboso();
 
-            System.out.println("Arquivo gerado com sucesso: " + arquivoDeSaida);
+      Cotuba cotuba = new Cotuba();
+      cotuba.executa(opcoesCLI);
 
-        } catch (Exception ex) {
-            System.err.println(ex.getMessage());
-            if (modoVerboso) {
-                ex.printStackTrace();
-            }
-            System.exit(1);
-        }
+      System.out.println("Arquivo gerado com sucesso: " + arquivoDeSaida);
+
+    } catch (Exception ex) {
+      System.err.println(ex.getMessage());
+      if (modoVerboso) {
+        ex.printStackTrace();
+      }
+      System.exit(1);
     }
+  }
 
 }
