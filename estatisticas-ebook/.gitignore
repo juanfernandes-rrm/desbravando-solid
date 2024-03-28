@@ -39,3 +39,16 @@ build/
 /.idea/encodings.xml
 /.idea/misc.xml
 /.idea/vcs.xml
+*.pdf
+*.epub
+*.html/
+target
+.classpath
+.project
+.settings
+.build/
+.idea/
+.vscode/
+libs/
+cotuba.sh
+
