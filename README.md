@@ -8,6 +8,16 @@ No livro, a aplicação Cotuba, um gerador de ebook do formato ***.md*** para **
 
 ## [Como utilizar](https://github.com/juanfernandes-rrm/desbravando-solid/tree/main/cotuba)
 
+## Sumário
+1. [Orientação a Objetos X SOLID](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#orienta%C3%A7%C3%A3o-a-objetos-x-solid)
+3. [Principio da Inversão de Dependências (DIP): Dependências Estáveis](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#principio-da-invers%C3%A3o-de-depend%C3%AAncias-dip-depend%C3%AAncias-est%C3%A1veis)
+4. [Princípio Aberto/Fechado (OCP): Objetos Flexíveis](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#princ%C3%ADpio-abertofechado-ocp-objetos-flex%C3%ADveis)
+5. [Princípio de Substituição de Liskov (LSP): Herança do jeito certo](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#princ%C3%ADpio-de-substitui%C3%A7%C3%A3o-de-liskov-lsp-heran%C3%A7a-do-jeito-certo)
+6. [Princípio da Segregação de Interfaces (ISP): Clientes separados, interfaces separadas](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#princ%C3%ADpio-da-segrega%C3%A7%C3%A3o-de-interfaces-isp-clientes-separados-interfaces-separadas)
+7. [Imutabilidade e encapsulamento](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#imutabilidade-e-encapsulamento)
+8. [Princípios de coesão e acoplamento de módulos](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#imutabilidade-e-encapsulamento)
+9. [Encapsulamento de Módulos e o ClassPath](https://github.com/juanfernandes-rrm/desbravando-solid/edit/main/README.md#encapsulamento-de-m%C3%B3dulos-e-o-classpath)
+
 ## Orientação a Objetos X SOLID
 Orientação a Objetos (OO) é um paradigma de programação que tem como objetivo aproximar o mundo real do código, permitindo uma representação mais clara e eficaz de problemas complexos. Nesse modelo, os conceitos do mundo real são traduzidos em objetos, que combinam dados e comportamento, tornando a programação mais intuitiva e organizada.
 
@@ -457,3 +467,66 @@ O valor de A será entre 0 e 1. O valor 0 indica que o módulo não possui nenhu
 E o valor 1 indica que o módulo tem somente classes abstratas ou interfaces.
 
 Segundo o SAP, a abstratividade deve seguir a estabilidade de um módulo, portanto, quanto menor a instabilidade (maior estabilidade), maior a abstratividade.
+
+
+
+## Encapsulamento de Módulos e o ClassPath
+
+No Java, temos diferentes tipos de estruturas, como classes, interfaces, enums, anotações e records. Estes tipos possuem dois modificadores de acesso principais: o padrão, que limita o acesso ao tipo dentro do mesmo pacote, e o public, que permite acesso a qualquer tipo, independentemente do pacote.
+
+Ao trabalhar com uma aplicação modularizada, é importante considerar o encapsulamento para evitar exposição indevida de detalhes internos dos módulos. Tipos com modificadores public podem expor detalhes que deveriam ser mantidos privados, o que pode levar a problemas de dependências transitivas não desejadas.
+
+Uma solução para contornar esses problemas de encapsulamento seria agrupar tipos relacionados em um mesmo pacote e expor apenas o necessário utilizando o modificador public. No entanto, essa abordagem pode resultar em código desorganizado e difícil de manter.
+
+Um dos principais desafios relacionados ao encapsulamento em Java é o ClassPath. O ClassPath é uma lista de JARs que são utilizados durante a compilação e execução de um programa. Por meio dele, tipos com modificadores public em um JAR podem ser acessados por qualquer outro JAR no ClassPath, o que pode enfraquecer o encapsulamento entre módulos.
+
+Problemas associados ao ClassPath, conforme descritos por Nicolai Parlog:
+
+- Encapsulamento fraco entre JARs
+- Falta de representação clara das dependências entre JARs
+- Ausência de verificações automáticas de segurança
+- Sombreamento de tipos com o mesmo nome
+- Conflitos entre diferentes versões do mesmo JAR
+- Restrições impostas pela JRE (Java Runtime Environment)
+- Performance prejudicada durante o carregamento de classes
+
+O encapsulamento também pode ser comprometido em tempo de execução, mesmo quando não há dependência explícita entre módulos, devido ao uso da API Reflection do Java.
+
+### JPMS (Java Platform Module System)
+
+A partir do Java 9, foi introduzido o JPMS (Java Platform Module System), que oferece uma abordagem mais estruturada para modularização de código em Java. O JPMS permite:
+
+- Definição de um nome único para cada módulo
+- Declaração de dependências entre módulos
+- Exportação de pacotes específicos, cujos tipos públicos são acessíveis por outros módulos
+
+Com o JPMS, é possível definir o encapsulamento a nível de pacotes, o que contribui para um design mais seguro e organizado.
+
+Para utilizar o JPMS, é necessário criar um arquivo chamado `module-info.java` em cada módulo. Nesse arquivo, são especificados quais pacotes serão exportados e quais dependências são necessárias.
+
+No caso de dependências com módulos de terceiros não modularizados, o JPMS oferece o conceito de Automatic Module, que simplifica a integração de módulos não modulares em um projeto modularizado.
+
+Automatic Module:
+
+- Deriva o nome do módulo do JAR
+- Exporta todos os pacotes do módulo
+- Declara todos os outros módulos como dependências
+
+Ao utilizar o JPMS em conjunto com SPIs (Service Provider Interfaces), algumas adaptações são necessárias para garantir a compatibilidade e integração adequadas entre os módulos.
+
+```bash
+module cotuba.core {
+    requires org.commonmark;
+
+    exports cotuba.application;
+    exports cotuba.domain;
+    exports cotuba.plugin;
+
+    uses cotuba.plugin.AoRenderizarHTML;
+    uses cotuba.plugin.AoFinalizarGeracao;
+    uses cotuba.plugin.GeradorEbook;
+}
+
+```
+
+Essa configuração exemplifica a utilização do JPMS em um módulo do projeto Cotuba, especificando dependências e exportações de pacotes necessárias para um funcionamento correto e encapsulado do módulo.
